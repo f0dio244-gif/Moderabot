@@ -337,22 +337,49 @@ client.on('interactionCreate', async (interaction) => {
 
     if (userWarnings.length === 0) {
       warnings.delete(userId);
+      
+      const allRemovedEmbed = new EmbedBuilder()
+        .setColor('#00ff00')
+        .setTitle('✅ All Warnings Cleared')
+        .setDescription(`All warnings have been removed for this user.`)
+        .addFields(
+          { name: 'Last Warning Removed', value: removedWarning.reason, inline: false },
+          { name: 'Removed By', value: interaction.user.tag, inline: true }
+        )
+        .setTimestamp();
+
+      return await interaction.update({ embeds: [allRemovedEmbed], components: [] });
     }
 
-    await interaction.deferUpdate();
-    await interaction.message.delete();
-
-    const successEmbed = new EmbedBuilder()
-      .setColor('#00ff00')
-      .setTitle('✅ Warning Removed')
-      .setDescription(`Warning ID ${warningId} has been successfully removed.`)
-      .addFields(
-        { name: 'Removed Reason', value: removedWarning.reason, inline: false },
-        { name: 'Removed By', value: interaction.user.tag, inline: true }
-      )
+    const user = await interaction.client.users.fetch(userId);
+    const updatedWarningsEmbed = new EmbedBuilder()
+      .setColor('#ff6600')
+      .setTitle(`⚠️ Warnings for ${user.tag}`)
+      .setDescription(`✅ Warning removed: ${removedWarning.reason}\n\nRemaining warnings: ${userWarnings.length}`)
       .setTimestamp();
 
-    await interaction.followUp({ embeds: [successEmbed] });
+    userWarnings.forEach((warn, index) => {
+      updatedWarningsEmbed.addFields({
+        name: `Warning ${index + 1} - ID: ${warn.id}`,
+        value: `**Reason:** ${warn.reason}\n**Moderator:** ${warn.moderator}\n**Date:** ${warn.timestamp.toLocaleDateString()}`,
+        inline: false
+      });
+    });
+
+    const updatedSelectMenu = new StringSelectMenuBuilder()
+      .setCustomId(`remove-warning-${userId}`)
+      .setPlaceholder('Select a warning to remove')
+      .addOptions(
+        userWarnings.map((warn, index) => ({
+          label: `Warning ${index + 1}: ${warn.reason.substring(0, 50)}`,
+          description: `ID: ${warn.id} | By: ${warn.moderator}`,
+          value: warn.id
+        }))
+      );
+
+    const updatedRow = new ActionRowBuilder().addComponents(updatedSelectMenu);
+
+    await interaction.update({ embeds: [updatedWarningsEmbed], components: [updatedRow] });
   }
 });
 
