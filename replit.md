@@ -33,9 +33,11 @@ A Discord moderation bot built with Node.js and discord.js. Uses prefix-based co
 1. `%help` - Display all available commands
 2. `%warn @user reason` - Add a warning to a user
 3. `%warnings @user` - View warnings with interactive removal dropdown
-4. `%kick @user reason` - Kick a user from the server
-5. `%ban @user reason` - Ban a user from the server
-6. `%unban @user` - Unban a user by mention or ID
+4. `%mute @user duration reason` - Mute (timeout) a user for a specified duration
+5. `%unmute @user` - Unmute (remove timeout from) a user
+6. `%kick @user reason` - Kick a user from the server
+7. `%ban @user reason` - Ban a user from the server
+8. `%unban @user` - Unban a user by mention or ID
 
 ### Warning System
 - **Storage**: In-memory Map structure (resets on bot restart)

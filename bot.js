@@ -25,6 +25,45 @@ function generateWarningId() {
   return `warn-${warningCounter}`;
 }
 
+function parseDuration(durationStr) {
+  const regex = /^(\d+)([smhd])$/;
+  const match = durationStr.match(regex);
+  
+  if (!match) return null;
+  
+  const value = parseInt(match[1]);
+  const unit = match[2];
+  
+  const multipliers = {
+    's': 1000,
+    'm': 60 * 1000,
+    'h': 60 * 60 * 1000,
+    'd': 24 * 60 * 60 * 1000
+  };
+  
+  const duration = value * multipliers[unit];
+  
+  if (duration > 28 * 24 * 60 * 60 * 1000) {
+    return null;
+  }
+  
+  return duration;
+}
+
+function formatDuration(durationStr) {
+  const value = parseInt(durationStr);
+  const unit = durationStr.slice(-1);
+  
+  const units = {
+    's': 'second',
+    'm': 'minute',
+    'h': 'hour',
+    'd': 'day'
+  };
+  
+  return `${value} ${units[unit]}${value > 1 ? 's' : ''}`;
+}
+
 client.once('ready', () => {
   console.log(`✅ Bot is online! Logged in as ${client.user.tag}`);
   console.log(`✅ Serving ${client.guilds.cache.size} servers`);
@@ -46,6 +85,8 @@ client.on('messageCreate', async (message) => {
         { name: '%help', value: 'Shows this help message', inline: false },
         { name: '%warn @user reason', value: 'Warns a user and stores the warning', inline: false },
         { name: '%warnings @user', value: 'Shows all warnings for a user with interactive removal', inline: false },
+        { name: '%mute @user duration reason', value: 'Mutes (timeouts) a user for a duration (e.g., 10m, 1h, 1d)', inline: false },
+        { name: '%unmute @user', value: 'Unmutes (removes timeout from) a user', inline: false },
         { name: '%kick @user reason', value: 'Kicks a user from the server', inline: false },
         { name: '%ban @user reason', value: 'Bans a user from the server', inline: false },
         { name: '%unban @user', value: 'Unbans a user by mention or ID', inline: false }
@@ -298,6 +339,132 @@ client.on('messageCreate', async (message) => {
       const errorEmbed = new EmbedBuilder()
         .setColor('#ff0000')
         .setDescription('❌ Failed to unban the user. Make sure they are banned and the ID is correct.');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+  }
+
+  if (command === 'mute') {
+    if (!message.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ You do not have permission to mute members.');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    const user = message.mentions.users.first();
+    if (!user) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Please mention a user to mute.\n\n**Usage:** `%mute @user duration reason`\n**Example:** `%mute @user 10m Spamming`\n\n**Duration formats:** 10s, 5m, 1h, 2d (max 28 days)');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    const member = message.guild.members.cache.get(user.id);
+    if (!member) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ User not found in this server.');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    if (!member.moderatable) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ I cannot mute this user. They may have higher permissions than me.');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    const durationStr = args[1];
+    if (!durationStr) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Please provide a duration.\n\n**Usage:** `%mute @user duration reason`\n**Example:** `%mute @user 10m Spamming`\n\n**Duration formats:** 10s, 5m, 1h, 2d (max 28 days)');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    const duration = parseDuration(durationStr);
+    if (!duration) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Invalid duration format or duration too long.\n\n**Valid formats:** 10s, 5m, 1h, 2d (max 28 days)');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    const reason = args.slice(2).join(' ') || 'No reason provided';
+
+    try {
+      await member.timeout(duration, reason);
+      
+      const muteEmbed = new EmbedBuilder()
+        .setColor('#ff9900')
+        .setTitle('🔇 User Muted')
+        .setDescription(`${user.tag} has been muted (timed out).`)
+        .addFields(
+          { name: 'Duration', value: formatDuration(durationStr), inline: true },
+          { name: 'Reason', value: reason, inline: false },
+          { name: 'Moderator', value: message.author.tag, inline: true }
+        )
+        .setTimestamp();
+
+      return message.reply({ embeds: [muteEmbed] });
+    } catch (error) {
+      console.error(error);
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Failed to mute the user. Please check my permissions.');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+  }
+
+  if (command === 'unmute') {
+    if (!message.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ You do not have permission to unmute members.');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    const user = message.mentions.users.first();
+    if (!user) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Please mention a user to unmute.\n\n**Usage:** `%unmute @user`');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    const member = message.guild.members.cache.get(user.id);
+    if (!member) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ User not found in this server.');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    if (!member.moderatable) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ I cannot unmute this user. They may have higher permissions than me.');
+      return message.reply({ embeds: [errorEmbed] });
+    }
+
+    try {
+      await member.timeout(null);
+      
+      const unmuteEmbed = new EmbedBuilder()
+        .setColor('#00ff00')
+        .setTitle('🔊 User Unmuted')
+        .setDescription(`${user.tag} has been unmuted (timeout removed).`)
+        .addFields(
+          { name: 'Moderator', value: message.author.tag, inline: true }
+        )
+        .setTimestamp();
+
+      return message.reply({ embeds: [unmuteEmbed] });
+    } catch (error) {
+      console.error(error);
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Failed to unmute the user. Please check my permissions.');
       return message.reply({ embeds: [errorEmbed] });
     }
   }
