@@ -58,12 +58,18 @@ client.on('messageCreate', async (message) => {
 
   if (command === 'warn') {
     if (!message.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-      return message.reply('❌ You do not have permission to use this command.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ You do not have permission to use this command.');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const user = message.mentions.users.first();
     if (!user) {
-      return message.reply('❌ Please mention a user to warn. Usage: `%warn @user reason`');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Please mention a user to warn.\n\n**Usage:** `%warn @user reason`');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const reason = args.slice(1).join(' ') || 'No reason provided';
@@ -98,18 +104,27 @@ client.on('messageCreate', async (message) => {
 
   if (command === 'warnings') {
     if (!message.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-      return message.reply('❌ You do not have permission to view warnings.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ You do not have permission to view warnings.');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const user = message.mentions.users.first();
     if (!user) {
-      return message.reply('❌ Please mention a user. Usage: `%warnings @user`');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Please mention a user.\n\n**Usage:** `%warnings @user`');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const userWarnings = warnings.get(user.id) || [];
 
     if (userWarnings.length === 0) {
-      return message.reply(`ℹ️ No warnings found for ${user.tag}.`);
+      const infoEmbed = new EmbedBuilder()
+        .setColor('#0099ff')
+        .setDescription(`ℹ️ No warnings found for ${user.tag}.`);
+      return message.reply({ embeds: [infoEmbed] });
     }
 
     const warningsEmbed = new EmbedBuilder()
@@ -144,21 +159,33 @@ client.on('messageCreate', async (message) => {
 
   if (command === 'kick') {
     if (!message.member.permissions.has(PermissionFlagsBits.KickMembers)) {
-      return message.reply('❌ You do not have permission to kick members.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ You do not have permission to kick members.');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const user = message.mentions.users.first();
     if (!user) {
-      return message.reply('❌ Please mention a user to kick. Usage: `%kick @user reason`');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Please mention a user to kick.\n\n**Usage:** `%kick @user reason`');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const member = message.guild.members.cache.get(user.id);
     if (!member) {
-      return message.reply('❌ User not found in this server.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ User not found in this server.');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     if (!member.kickable) {
-      return message.reply('❌ I cannot kick this user. They may have higher permissions than me.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ I cannot kick this user. They may have higher permissions than me.');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const reason = args.slice(1).join(' ') || 'No reason provided';
@@ -179,23 +206,35 @@ client.on('messageCreate', async (message) => {
       return message.reply({ embeds: [kickEmbed] });
     } catch (error) {
       console.error(error);
-      return message.reply('❌ Failed to kick the user. Please check my permissions.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Failed to kick the user. Please check my permissions.');
+      return message.reply({ embeds: [errorEmbed] });
     }
   }
 
   if (command === 'ban') {
     if (!message.member.permissions.has(PermissionFlagsBits.BanMembers)) {
-      return message.reply('❌ You do not have permission to ban members.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ You do not have permission to ban members.');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const user = message.mentions.users.first();
     if (!user) {
-      return message.reply('❌ Please mention a user to ban. Usage: `%ban @user reason`');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Please mention a user to ban.\n\n**Usage:** `%ban @user reason`');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const member = message.guild.members.cache.get(user.id);
     if (member && !member.bannable) {
-      return message.reply('❌ I cannot ban this user. They may have higher permissions than me.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ I cannot ban this user. They may have higher permissions than me.');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const reason = args.slice(1).join(' ') || 'No reason provided';
@@ -216,18 +255,27 @@ client.on('messageCreate', async (message) => {
       return message.reply({ embeds: [banEmbed] });
     } catch (error) {
       console.error(error);
-      return message.reply('❌ Failed to ban the user. Please check my permissions.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Failed to ban the user. Please check my permissions.');
+      return message.reply({ embeds: [errorEmbed] });
     }
   }
 
   if (command === 'unban') {
     if (!message.member.permissions.has(PermissionFlagsBits.BanMembers)) {
-      return message.reply('❌ You do not have permission to unban members.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ You do not have permission to unban members.');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const userId = args[0];
     if (!userId) {
-      return message.reply('❌ Please provide a user ID or mention. Usage: `%unban @user` or `%unban userId`');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Please provide a user ID or mention.\n\n**Usage:** `%unban @user` or `%unban userId`');
+      return message.reply({ embeds: [errorEmbed] });
     }
 
     const id = userId.replace(/[<@!>]/g, '');
@@ -247,7 +295,10 @@ client.on('messageCreate', async (message) => {
       return message.reply({ embeds: [unbanEmbed] });
     } catch (error) {
       console.error(error);
-      return message.reply('❌ Failed to unban the user. Make sure they are banned and the ID is correct.');
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Failed to unban the user. Make sure they are banned and the ID is correct.');
+      return message.reply({ embeds: [errorEmbed] });
     }
   }
 });
@@ -257,7 +308,10 @@ client.on('interactionCreate', async (interaction) => {
 
   if (interaction.customId.startsWith('remove-warning-')) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-      return interaction.reply({ content: '❌ You do not have permission to remove warnings.', ephemeral: true });
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ You do not have permission to remove warnings.');
+      return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
 
     const userId = interaction.customId.replace('remove-warning-', '');
@@ -265,12 +319,18 @@ client.on('interactionCreate', async (interaction) => {
 
     const userWarnings = warnings.get(userId);
     if (!userWarnings) {
-      return interaction.reply({ content: '❌ No warnings found for this user.', ephemeral: true });
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ No warnings found for this user.');
+      return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
 
     const warningIndex = userWarnings.findIndex(w => w.id === warningId);
     if (warningIndex === -1) {
-      return interaction.reply({ content: '❌ Warning not found.', ephemeral: true });
+      const errorEmbed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription('❌ Warning not found.');
+      return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
 
     const removedWarning = userWarnings.splice(warningIndex, 1)[0];
@@ -278,6 +338,9 @@ client.on('interactionCreate', async (interaction) => {
     if (userWarnings.length === 0) {
       warnings.delete(userId);
     }
+
+    await interaction.deferUpdate();
+    await interaction.message.delete();
 
     const successEmbed = new EmbedBuilder()
       .setColor('#00ff00')
@@ -289,7 +352,7 @@ client.on('interactionCreate', async (interaction) => {
       )
       .setTimestamp();
 
-    await interaction.update({ embeds: [successEmbed], components: [] });
+    await interaction.followUp({ embeds: [successEmbed] });
   }
 });
 
