@@ -1,0 +1,41 @@
+This is a Discord moderation bot written in Node.js using discord.js and express. It uses the prefix % for all commands. The bot runs as a standard Discord bot client and also hosts a lightweight web server to stay alive on Render.
+
+When the bot starts, it connects to Discord using a bot token stored in an environment variable. It also starts an express web server that listens on port 10000 (or whatever Render provides via process.env.PORT) and responds with a plain text message such as “Moderation Bot is running.” This server keeps the process alive and can be pinged for uptime checks.
+
+The bot listens for messages in Discord. If a message starts with %, it treats it as a command. All commands are prefix-activated, meaning there are no slash commands.
+
+The main moderation commands are:
+
+%help — shows all available commands and short usage help
+
+%warn @user reason — adds a warning to a user and stores it in memory
+
+%warnings @user — displays a list of the user’s current warnings with IDs
+
+%kick @user reason — kicks a user from the server
+
+%ban @user reason — bans a user from the server
+
+%unban @user — unbans a user by mention or ID
+
+When a moderator runs %warnings @user, the bot sends an embedded message listing all warnings for that user. Each warning appears with an ID and reason. Below the list, there is a Discord select menu (dropdown) containing the warning IDs. The menu lets the moderator select which warning to remove. When an item is selected, the bot deletes that warning from memory and updates the message to reflect the change.
+
+If there are no warnings, the bot simply says “No warnings found for this user.”
+
+Warnings are stored in a simple in-memory object or map where keys are user IDs and values are arrays of warning entries containing IDs, reasons, and timestamps.
+
+The bot replies to all commands in plain text messages or Discord embeds, never in slash command style. It does not use external databases at MVP stage but can easily be extended to store data in JSON files or a database.
+
+On Render, the bot is deployed as a Node service. The start command installs dependencies, launches both the web server and the Discord client, and keeps them running.
+
+Example flow:
+A moderator types %warn @User Spamming. The bot replies “@User has been warned for: Spamming.”
+The moderator then types %warnings @User. The bot shows:
+
+Spamming
+
+Posting off-topic messages
+and below that a dropdown menu titled “Select a warning to remove.”
+When the moderator selects one, the bot deletes it and edits the message to say “Warning removed successfully.”
+
+This is a self-contained moderation bot with prefix commands, an express keepalive server, and Discord component interactions for interactive warning deletion. It’s minimal, functional, and suitable for hosting on Render as a Node.js service.
