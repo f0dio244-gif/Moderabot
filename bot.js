@@ -97,6 +97,10 @@ client.on('messageCreate', async (message) => {
   }
 
   if (command === 'warnings') {
+    if (!message.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+      return message.reply('❌ You do not have permission to view warnings.');
+    }
+
     const user = message.mentions.users.first();
     if (!user) {
       return message.reply('❌ Please mention a user. Usage: `%warnings @user`');
@@ -252,6 +256,10 @@ client.on('interactionCreate', async (interaction) => {
   if (!interaction.isStringSelectMenu()) return;
 
   if (interaction.customId.startsWith('remove-warning-')) {
+    if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+      return interaction.reply({ content: '❌ You do not have permission to remove warnings.', ephemeral: true });
+    }
+
     const userId = interaction.customId.replace('remove-warning-', '');
     const warningId = interaction.values[0];
 
