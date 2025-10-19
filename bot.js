@@ -13,7 +13,7 @@ const client = new Client({
 });
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
 const PREFIX = '%';
 
 const warnings = new Map();
